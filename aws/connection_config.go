@@ -6,11 +6,13 @@ import (
 )
 
 type awsConfig struct {
-	Regions      []string `cty:"regions"`
-	Profile      *string  `cty:"profile"`
-	AccessKey    *string  `cty:"access_key"`
-	SecretKey    *string  `cty:"secret_key"`
-	SessionToken *string  `cty:"session_token"`
+	Regions       []string `cty:"regions"`
+	Profile       *string  `cty:"profile"`
+	AccessKey     *string  `cty:"access_key"`
+	SecretKey     *string  `cty:"secret_key"`
+	SessionToken  *string  `cty:"session_token"`
+	MaxConcurrent *int      `cty:"max_concurrent"`
+	MaxPerSecond  *int      `cty:"max_per_second"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -29,6 +31,12 @@ var ConfigSchema = map[string]*schema.Attribute{
 	},
 	"session_token": {
 		Type: schema.TypeString,
+	},
+	"max_concurrent": {
+		Type: schema.TypeInt,
+	},
+	"max_per_second": {
+		Type: schema.TypeInt,
 	},
 }
 
