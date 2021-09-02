@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	"go.uber.org/ratelimit"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -81,6 +82,32 @@ import (
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 )
+
+type NewRateLimiterInput struct {
+	MaxConcurrent int
+	MaxPerSecond int
+}
+
+func NewRateLimiter(input NewRateLimiterInput) *RateLimiter {
+	return &RateLimiter{
+		cl: make(chan int, input.MaxConcurrent),
+		rl: ratelimit.New(input.MaxPerSecond),
+	}
+}
+
+type RateLimiter struct {
+	cl chan int
+	rl ratelimit.Limiter
+}
+
+func (r RateLimiter) Take(_ *request.Request) {
+	r.cl <- 1
+	r.rl.Take()
+}
+
+func (r RateLimiter) Done(_ *request.Request) {
+	<- r.cl
+}
 
 // AccessAnalyzerService returns the service connection for AWS IAM Access Analyzer service
 func AccessAnalyzerService(ctx context.Context, d *plugin.QueryData) (*accessanalyzer.AccessAnalyzer, error) {
@@ -1557,6 +1584,10 @@ func getSession(_ context.Context, d *plugin.QueryData, region string) (*session
 	if err != nil {
 		return nil, err
 	}
+
+	limiter := NewRateLimiter(NewRateLimiterInput{MaxConcurrent: 1, MaxPerSecond: 1})
+	sess.Handlers.Validate.PushFront(limiter.Take)
+	sess.Handlers.Complete.PushBack(limiter.Done)
 
 	// save session in cache
 	d.ConnectionManager.Cache.Set(sessionCacheKey, sess)
