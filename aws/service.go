@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"io/fs"
+	"io/ioutil"
 	"path"
 	"strings"
 	"time"
@@ -1753,6 +1755,14 @@ func getSessionWithMaxRetries(ctx context.Context, d *plugin.QueryData, region s
 				*awsConfig.AccessKey, *awsConfig.SecretKey, *awsConfig.SessionToken,
 			)
 		}
+	}
+
+	if awsConfig.Endpoint != nil {
+		sessionOptions.Config.Endpoint = awsConfig.Endpoint
+	}
+
+	if awsConfig.DisableSSL != nil {
+		sessionOptions.Config.DisableSSL = awsConfig.DisableSSL
 	}
 
 	sess, err := session.NewSessionWithOptions(sessionOptions)

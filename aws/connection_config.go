@@ -8,6 +8,8 @@ import (
 type awsConfig struct {
 	Regions      []string `cty:"regions"`
 	Profile      *string  `cty:"profile"`
+	Endpoint     *string  `cty:"endpoint"`
+	DisableSSL     *bool  `cty:"disable_ssl"`
 	AccessKey    *string  `cty:"access_key"`
 	SecretKey    *string  `cty:"secret_key"`
 	SessionToken *string  `cty:"session_token"`
@@ -20,6 +22,12 @@ var ConfigSchema = map[string]*schema.Attribute{
 	},
 	"profile": {
 		Type: schema.TypeString,
+	},
+	"endpoint": {
+		Type: schema.TypeString,
+	},
+	"disable_ssl": {
+		Type: schema.TypeBool,
 	},
 	"access_key": {
 		Type: schema.TypeString,
